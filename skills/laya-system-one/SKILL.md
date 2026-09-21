@@ -1,3 +1,9 @@
+---
+name: laya-system-one
+description: Use for fast local judgment (classify/route/gate) without LLM calls.
+category: devops
+---
+
 # Laya: local System 1 judgment engine
 
 Open-source Jev equivalent (Apache 2.0, ModernBERT backbone). Non-autoregressive,
