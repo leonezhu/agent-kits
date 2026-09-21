@@ -86,15 +86,20 @@ def ask():
     body = request.get_json(silent=True) or {}
     if "state" not in body or "questions" not in body:
         return jsonify({"error": "body must contain 'state' and 'questions'"}), 400
+    state_s = json.dumps(body["state"], ensure_ascii=False)[:200]
+    qs = body["questions"]
+    qs_s = json.dumps(qs, ensure_ascii=False)[:300]
     try:
-        result = agent.predict(body["state"], body["questions"])
+        result = agent.predict(body["state"], qs)
         answers = result["answers"]
         summary = {k: v.get("choice") or v.get("score") or v.get("noul") for k, v in answers.items()}
         confs = {k: round(v.get("confidence", 0), 3) for k, v in answers.items()}
-        log(f"ask {time.time() - t:.2f}s results={summary} conf={confs}")
+        log(f"ask {time.time() - t:.2f}s state={state_s} questions={qs_s} "
+            f"-> results={summary} conf={confs}")
         return jsonify(answers)
     except Exception as e:
-        log(f"ask FAILED after {time.time() - t:.2f}s: {type(e).__name__}: {e}")
+        log(f"ask FAILED after {time.time() - t:.2f}s state={state_s} questions={qs_s} "
+            f"error={type(e).__name__}: {e}")
         return jsonify({"error": str(e)}), 500
 
 
