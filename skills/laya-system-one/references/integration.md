@@ -1,39 +1,43 @@
-# 任意 Agent 代码集成模式
+# Agent code integration patterns
 
-## 模式一：进程内（单脚本，最简单）
+## Pattern 1: in-process (single script, simplest)
 
 ```python
-import warnings; warnings.filterwarnings('ignore')
+import warnings
+
+warnings.filterwarnings("ignore")
 import laya
 
-agent = laya.load("/path/to/laya_model_slim", device="cpu")  # 进程级单例，只 load 一次
-
+agent = laya.load("/path/to/laya_model_slim", device="cpu")  # process-level singleton
 result = agent.predict(state, questions)["answers"]
 ```
 
-适合：单个 cron 脚本、一次性批处理。
+Fits: single cron scripts, one-off batch jobs.
 
-## 模式二：HTTP 服务（多 agent/多脚本共用，推荐）
+## Pattern 2: HTTP server (shared across agents/scripts, recommended)
 
-启动见 laya-server.md。任何语言 curl 即用，判断器可插拔（Laya↔Jev 零改动切换）。
+Start via scripts/laya_server.py (see laya-server.md). Any language queries via curl;
+the judge is swappable (Laya <-> Jev with zero caller changes).
 
-适合：多个脚本/agent 共用同一判断层；不想每个进程都加载 30-60s 权重。
+Fits: multiple scripts/agents sharing one judgment layer; avoids loading
+weights 30-60s per process.
 
-## 通用决策模式：置信度三分支
+## Universal decision pattern: confidence three-way branch
 
 ```python
-r = answers["q名"]
+r = answers["qname"]
 if r["confidence"] >= 0.85:
-    do_auto(r)          # 高置信：自动执行
+    do_auto(r)          # high confidence: act automatically
 elif r["confidence"] >= 0.3:
-    do_llm_fallback(r)  # 中间带：升级 LLM 或人工
+    do_llm_fallback(r)  # middle band: escalate to LLM or human
 else:
-    do_conservative(r)  # 低置信：默认保守动作+记录日志
+    do_conservative(r)  # low confidence: conservative default + log
 ```
 
-阈值 0.85/0.3 是起点，**新场景先拿 20 个已知答案的 case 回测 conf 分布再定**。
+Thresholds 0.85/0.3 are starting points. **Backtest 20 known-answer cases per new
+scenario before fixing them.**
 
-## Tool Gate 模板（任意 agent 工具执行前）
+## Tool gate template (before any agent tool execution)
 
 ```python
 GATE_Q = {
@@ -43,6 +47,7 @@ GATE_Q = {
                           "high": "irreversible or external effects"}},
     "needs_approval": {"type": "noul", "instructions": "Should a human approve this?"}
 }
+
 
 def gate(tool, args):
     a = agent.predict({"tool": tool, "args": args}, GATE_Q)["answers"]
