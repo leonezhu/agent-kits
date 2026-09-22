@@ -23,6 +23,7 @@ LAYA = "http://127.0.0.1:8600/ask"
 BLOG_FEEDS = [
     ("microsoft", "https://blogs.microsoft.com/feed/"),
     ("openai", "https://openai.com/news/rss.xml"),
+    ("cloudflare", "https://blog.cloudflare.com/rss/"),
     ("google_blog", "https://blog.google/rss/"),
     ("google_deepmind", "https://deepmind.google/blog/rss.xml"),
     ("huggingface", "https://huggingface.co/blog/feed.xml"),
